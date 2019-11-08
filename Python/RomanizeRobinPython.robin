@@ -82,7 +82,7 @@ set Script to '''def romanize(greek_text):
     return result
 
 print(romanize(\''''+UserInput+'\'))'
-System.RunPython PythonCode: Script ModuleFolderPaths:'C:\Program Files\IronPython 2.7\Lib' ScriptOutput=> ScriptOutput ScriptError=> ScriptError
+System.RunPython PythonCode: Script ModuleFolderPaths:'C:\Program Files' ScriptOutput=> ScriptOutput ScriptError=> ScriptError
 end
 Console.Write Message: '''
 Romanized Output:
