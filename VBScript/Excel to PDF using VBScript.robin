@@ -1,0 +1,16 @@
+Folder.GetSpecialFolder SpecialFolder:Folder.SpecialFolder.DesktopDirectory SpecialFolderPath=> Desktop
+
+Display.SelectFile Title:'Please Select Excel Document to be converted to PDF' InitialDirectory: Desktop \
+FileFilter:'' IsTopMost:True CheckIfFileExists:False SelectedFile=> SelectedFile ButtonPressed=> ButtonPressed
+
+if SelectedFile.Exists = True and (SelectedFile.Extension ='.xlsx' or SelectedFile.Extension ='.xls'or SelectedFile.Extension ='.xlsm' or SelectedFile.Extension ='.xlsb') then
+
+    System.RunVBScript VBScriptCode:''''Dim Excel
+    Dim ExcelDoc
+    Set Excel = CreateObject("Excel.Application")
+    Set ExcelDoc = Excel.Workbooks.open("'''+SelectedFile+'''")
+    Excel.ActiveSheet.ExportAsFixedFormat 0, "'''+SelectedFile.Directory+'\\'+SelectedFile.NameWithoutExtension+'''.pdf" ,0, 1, 0,,,0
+    Excel.ActiveWorkbook.Close
+    Excel.Application.Quit''' ScriptError=> ScriptError ScriptOutput=> ScriptOutput
+
+end
