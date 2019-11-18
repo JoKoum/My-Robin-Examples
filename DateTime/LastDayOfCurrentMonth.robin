@@ -1,0 +1,9 @@
+DateTime.Current DateTimeFormat:DateTime.DateTimeFormat.DateAndTime Offset:'0' CurrentDateTime=> CurrentDateTime
+set Month to CurrentDateTime.Month
+set Year to CurrentDateTime.Year
+System.RunJavascript JavascriptCode:'var month = '+Month+'; var d = new Date('+Year+',month, 0); WScript.Echo(d);' \
+ScriptOutput=> ScriptOutput ScriptError=> ScriptError
+Text.RegexParseForFirstOccurrence Text: ScriptOutput TextToFind: '.+(?=\s\d{2}:)' StartingPosition: 0 IgnoreCase:False OccurrencePosition=> OccurrencePosition Match=> LastDayOfMonth
+Text.ToDateTime Text: LastDayOfMonth DateTime=> LastDayOfMonth
+Text.CustomDateTimeToText DateTime: LastDayOfMonth CustomFormat: 'dddd, dd-MM-yy' Result=> LastDayOfMonth
+Console.Write Message: LastDayOfMonth
