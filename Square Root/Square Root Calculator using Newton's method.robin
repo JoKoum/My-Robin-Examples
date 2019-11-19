@@ -1,0 +1,26 @@
+#The Process implement the Square Root calculation algorithm using Newton's method.
+#It prompts the user to insert a positive number and displays its Square Root with 5 decimal places on the console.
+Display.InputDialog Title:'Please enter a positive number' Message:'' DefaultValue:'1' InputType:Display.InputType.SingleLine \
+IsTopMost:False UserInput=> UserInput ButtonPressed=> ButtonPressed
+
+if UserInput <> '' and ButtonPressed <> 'Cancel' then
+    Text.ToNumber Text: UserInput Number=> num
+        if num > 0 then
+            set x to num/2
+            set sqrt to (x+2)/2
+            loop while ((x-sqrt >= 0.000001) or (sqrt-x >= 0.000001)) = true
+                set x to sqrt
+                set sqrt to (x+(num/x))/2
+            end
+            Variables.RoundNumber Number: sqrt DecimalPlaces:5 Result=> sqrt
+            Variables.GetDecimalPart Number: sqrt Result=> dec
+            if dec = 0 then
+                Variables.GetIntegerPart Number: sqrt Result=> sqrt
+            end
+            Console.Write Message: 'Square root of '+num+' = '+sqrt
+        else
+            Console.Write Message: 'Please provide a valid positive number!!'
+        end
+else
+    Console.Write Message: 'Please provide a valid positive number!!'    
+end
