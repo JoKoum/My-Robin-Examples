@@ -1,0 +1,117 @@
+# This is an attempt to automate the 'Movie Search' RPA Challenge
+# (http://rpachallenge.com/movieSearch) using Robin for the Web Automation and 
+# Text Extraction part and Python for the Sentiment Analysis part
+
+# Make sure that you have Python 3 installed and Pandas, Scikit-Learn libraries in place
+
+# If Python is not added to system's PATH, enter the whole path to the python.exe file location, 
+# otherwise leave it empty.
+
+set PythonPath to 'C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python37_64\\'
+
+# Get user's name from the current environment
+
+System.GetEnvironmentVariable \
+    Name: 'USERNAME' \
+    Value=> User
+
+# Launch Firefox and navigate to challenges URL'
+WebAutomation.LaunchFirefox Url: 'http://rpachallenge.com/movieSearch'\
+    WindowState:WebAutomation.BrowserWindowState.Normal\
+    ClearCache:False ClearCookies:False \
+    BrowserInstance=> Browser
+
+# Get 3 random movies
+WebAutomation.FormFilling.PressButton \
+    BrowserInstance: Browser \
+    Control: 'domcontainer{<{<{<SelectorSeparator>}>}>}uia3:// button:contains("Get Popular Movies")'
+
+wait 2
+
+# Start the timer
+WebAutomation.FormFilling.PressButton \
+    BrowserInstance: Browser \
+    Control: 'domcontainer{<{<{<SelectorSeparator>}>}>}uia3:// button:contains("Start Timer")'
+
+# Open movie comments one by one and extract text
+loop i from 5 to 7 step 1
+    WebAutomation.DataExtraction.GetDetailsOfElement \
+        BrowserInstance: Browser \
+        Control: 'domcontainer{<{<{<SelectorSeparator>}>}>}uia3:// div[class^="instructionsDiv"] > div:eq('+i+') > span'\
+        AttributeName: 'Own Text' \
+        AttributeValue=> Movie
+    WebAutomation.Click \
+        BrowserInstance: Browser \  
+        Control: 'domcontainer{<{<{<SelectorSeparator>}>}>}uia3:// div[class^="instructionsDiv"] > div:eq('+i+') > i:contains("comment")'
+    wait 2
+    call ReviewExtraction Browser:Browser
+    WebAutomation.Click \
+        BrowserInstance: Browser \
+        Control: 'domcontainer{<{<{<SelectorSeparator>}>}>}uia3:// span:contains("'+Movie+'") + i:contains("close")' 
+end
+
+# Submit results
+WebAutomation.FormFilling.PressButton \
+    BrowserInstance: Browser \
+    Control: 'domcontainer{<{<{<SelectorSeparator>}>}>}uia3:// button:contains("Submit")'
+
+# Extract Review text and store it into a variable
+function ReviewExtraction Browser
+    # Get Reviews' number
+    WebAutomation.ExecuteJavascript \
+        BrowserInstance: Browser Javascript:'''function ExecuteScript() { 
+                     var ReviewList = document.getElementsByClassName("card blue-grey darken-1 col");
+                                                    return ReviewList.length;}''' \
+        Result=> Reviews
+    Text.ToNumber \
+        Text: Reviews \
+        Number=> Reviews
+    # Retrieve Reviews' Text
+    loop i from 0 to Reviews-1
+        WebAutomation.DataExtraction.GetDetailsOfElement\
+            BrowserInstance: Browser \
+            Control: 'domcontainer{<{<{<SelectorSeparator>}>}>}uia3:// div[class="card blue-grey darken-1 col "]:eq('+i+') p' \
+            AttributeName: 'Own Text' \
+            AttributeValue=> ReviewText
+        call PositiveOrNegative Review:i ReviewText:ReviewText Browser:Browser
+    end
+end
+
+#Run ML model by calling Python through Command Line.
+function PositiveOrNegative Review,ReviewText,Browser
+    
+    CommandLine.Open \
+        Directory:'C:\Users\\'+g:User+'\Documents\GitHub\Robin_Examples\RPA Challenge Movie Search\Text Classification approach' \
+        Session=> Session
+    CommandLine.Write \
+        Session: Session \
+        Command: '"'+PythonPath+'python" "Text Classification.py" "'+ReviewText+'"' \
+        SendEnter:True
+    CommandLine.WaitForText \
+        Session: Session \
+        Text: '\[\'(neg)|(pos)\'\]' \
+        IsRegEx:True \
+        IgnoreCase:True Timeout:0
+    CommandLine.Read \
+        Session: Session \
+        CmdOutput=> Sentiment
+    CommandLine.Close Session: Session
+    #Parse the output to retrieve the Sentiment
+    Text.RegexParseForFirstOccurrence \
+        Text: Sentiment \
+        TextToFind: '(?<=\[\')\w{3}' \
+        StartingPosition: 0 \
+        IgnoreCase:False \
+        OccurrencePosition=> OccurrencePosition \
+        Match=> Sentiment
+    Text.ChangeCase \
+        Text: Sentiment \
+        NewCase:Text.CaseOption.TitleCase \
+        Result=> Sentiment
+    # Select Positive or Negative
+    WebAutomation.Click \
+        BrowserInstance: Browser \
+        Control: '''domcontainer{<{<{<SelectorSeparator>}>}>}uia3:// 
+                div[class="card blue-grey darken-1 col "]:eq('''+Review+''') 
+                > div:eq(1) > a:contains("'''+Sentiment+'")'
+end
