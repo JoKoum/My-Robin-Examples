@@ -80,22 +80,22 @@ end
 #Run ML model by calling Python through Command Line.
 function PositiveOrNegative Review,ReviewText,Browser
     
-    CommandLine.Open \
+    Cmd.Open \
         Directory:'C:\Users\\'+g:User+'\Documents\GitHub\Robin_Examples\RPA Challenge Movie Search\Text Classification approach' \
         Session=> Session
-    CommandLine.Write \
+    Cmd.Write \
         Session: Session \
         Command: '"'+PythonPath+'python" "Text Classification.py" "'+ReviewText+'"' \
         SendEnter:True
-    CommandLine.WaitForText \
+    Cmd.WaitForText \
         Session: Session \
         Text: '\[\'(neg)|(pos)\'\]' \
         IsRegEx:True \
         IgnoreCase:True Timeout:0
-    CommandLine.Read \
+    Cmd.Read \
         Session: Session \
         CmdOutput=> Sentiment
-    CommandLine.Close Session: Session
+    Cmd.Close Session: Session
     #Parse the output to retrieve the Sentiment
     Text.RegexParseForFirstOccurrence \
         Text: Sentiment \
