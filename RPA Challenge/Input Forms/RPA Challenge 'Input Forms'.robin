@@ -1,0 +1,35 @@
+System.GetEnvironmentVariable Name: 'USERNAME' Value=> User
+
+Web.DownloadToFolder Url: 'http://rpachallenge.com/assets/downloadFiles/challenge.xlsx' \
+    DestinationFolder: 'C:\Users\\'+User+'\Downloads' ConnectionTimeout:30 \
+    FollowRedirection:True ClearCookies:False \
+    UserAgent:'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.21) Gecko/20100312 Firefox/3.6' \
+    Encoding:'' DownloadedFile=> DownloadedFile
+
+Excel.LaunchAndOpen Path: DownloadedFile Visible:False Password:'' ReadOnly:False \
+    LoadAddInsAndMacros:False Instance=> ExcelInstance
+Excel.GetFirstFreeColumnRow Instance: ExcelInstance \
+    FirstFreeColumn=> FirstFreeColumn FirstFreeRow=> FirstFreeRow
+Excel.ReadCells Instance: ExcelInstance StartColumn: 1 StartRow: 1 \
+    EndColumn: FirstFreeColumn-1 EndRow: FirstFreeRow-1 \
+    ReadAsText:False FirstLineIsHeader:True Value=> QueryResult
+Excel.Close Instance: ExcelInstance
+File.Delete Files: DownloadedFile
+
+WebAutomation.LaunchFirefox Url: 'http://www.rpachallenge.com/' \
+    WindowState:WebAutomation.BrowserWindowState.Normal \
+    ClearCache:False ClearCookies:False BrowserInstance=> Browser
+
+WebAutomation.ExecuteJavascript BrowserInstance: Browser \
+    Javascript:'function ExecuteScript() { document.querySelector(\'button\').click(); }' Result=> Result
+loop foreach Row in QueryResult
+    WebAutomation.ExecuteJavascript BrowserInstance: Browser Javascript:'''function ExecuteScript() {
+    document.querySelector(\'input[ng-reflect-name="labelRole"]\').value = \''''+Row[3]+'''\';
+    document.querySelector(\'input[ng-reflect-name="labelEmail"]\').value = \''''+Row[5]+'''\';
+    document.querySelector(\'input[ng-reflect-name="labelCompanyName"]\').value = \''''+Row[2]+'''\';
+    document.querySelector(\'input[ng-reflect-name="labelPhone"]\').value = \''''+Row[6]+'''\';
+    document.querySelector(\'input[ng-reflect-name="labelLastName"]\').value = \''''+Row[1]+'''\';
+    document.querySelector(\'input[ng-reflect-name="labelFirstName"]\').value = \''''+Row[0]+'''\';
+    document.querySelector(\'input[ng-reflect-name="labelAddress"]\').value = \''''+Row[4]+'''\';
+    document.querySelector(\'input[value="Submit"]\').click(); }''' Result=> Result
+end
