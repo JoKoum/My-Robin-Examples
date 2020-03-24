@@ -81,7 +81,7 @@ end
 function PositiveOrNegative Review,ReviewText,Browser
     
     Cmd.Open \
-        Directory:'C:\Users\\'+g:User+'\Documents\GitHub\Robin_Examples\RPA Challenge Movie Search\Text Classification approach' \
+        Directory:'C:\Users\\'+g:User+'\Documents\GitHub\My-Robin-Examples\RPA Challenge\Movie Search' \
         Session=> Session
     Cmd.Write \
         Session: Session \
